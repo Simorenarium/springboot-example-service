@@ -24,19 +24,17 @@ internal class SubjectService(
         return passwordEncoder.matches(subject.password, persistedSubject.password)
     }
 
-    fun listAllSubjects(): List<Subject> {
-        TODO("implement")
-    }
+    fun listAllSubjects(): List<Subject> = subjectStorage.list()
 
-    fun getSubject(id: Int): Subject {
-        TODO("implement")
-    }
+    fun getSubject(id: Int): Subject = subjectStorage.get(id)
+
+    fun getSubjectByName(username: String): Subject = subjectStorage.getByName(username)
 
     fun assignGroupToSubject(id: Int, userGroup: UserGroup): Subject {
-        TODO("implement")
+        val subject = subjectStorage.get(id)
+
+        return subjectStorage.persist(subject.copy(groups = subject.groups + userGroup))
     }
 
-    fun delete(id: Int) {
-        TODO("implement")
-    }
+    fun delete(id: Int) = subjectStorage.delete(id)
 }

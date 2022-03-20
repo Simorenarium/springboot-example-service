@@ -25,6 +25,15 @@ internal interface SubjectStorage {
     fun get(id: Int): Subject
 
     /**
+     * Searches for a Subject with the given username.
+     *
+     * @param username Username of the sought Subject
+     * @return the sought Subject.
+     * @throws SubjectNotFoundException if the sough Subject does not exist.
+     */
+    fun getByName(username: String): Subject
+
+    /**
      * Stores the given Subject.
      *
      * @return a modified Subject with a new ID.

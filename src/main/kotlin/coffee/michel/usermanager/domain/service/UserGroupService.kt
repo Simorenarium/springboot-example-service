@@ -12,19 +12,11 @@ internal class UserGroupService(
     private val userGroupStorage: UserGroupStorage
 ) {
 
-    fun listAllUserGroups(): List<UserGroup> {
-        TODO()
-    }
+    fun listAllUserGroups(): List<UserGroup> = userGroupStorage.list()
 
-    fun getUserGroup(id: Int): UserGroup {
-        TODO()
-    }
+    fun getUserGroup(id: Int): UserGroup = userGroupStorage.get(id)
 
-    fun createUserGroup(group: UserGroup): UserGroup {
-        TODO()
-    }
+    fun createUserGroup(group: UserGroup): UserGroup = userGroupStorage.persist(group)
 
-    fun deleteUserGroup(id: Int) {
-        TODO()
-    }
+    fun deleteUserGroup(id: Int) = userGroupStorage.delete(id)
 }

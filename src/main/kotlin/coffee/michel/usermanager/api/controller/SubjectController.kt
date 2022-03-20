@@ -3,6 +3,8 @@ package coffee.michel.usermanager.api.controller
 import coffee.michel.usermanager.api.SubjectReadDto
 import coffee.michel.usermanager.api.SubjectWriteDto
 import coffee.michel.usermanager.api.UserGroupWriteDto
+import coffee.michel.usermanager.api.security.JWTService
+import coffee.michel.usermanager.api.security.JWTSubject
 import coffee.michel.usermanager.api.utility.mapToDomain
 import coffee.michel.usermanager.api.utility.mapToReadDto
 import coffee.michel.usermanager.domain.service.SubjectService
@@ -14,7 +16,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.ResponseEntity
@@ -35,7 +36,8 @@ import org.springframework.web.bind.annotation.RestController
     produces = [APPLICATION_JSON_VALUE]
 )
 internal class SubjectController(
-    private val subjectService: SubjectService
+    private val subjectService: SubjectService,
+    private val jwtService: JWTService
 ) {
 
     // TODO verify the security stuff (check if it works)
@@ -152,8 +154,9 @@ internal class SubjectController(
     )
     @ApiResponses(
         ApiResponse(
-            responseCode = "204",
+            responseCode = "200",
             description = "The User was successfully authenticated."
+            // TODO add return value
         ),
         ApiResponse(
             responseCode = "401",
@@ -169,7 +172,17 @@ internal class SubjectController(
         val isLoggedIn = subjectService.login(mapToDomain(subject))
 
         return if (isLoggedIn) {
-            ResponseEntity.status(NO_CONTENT).build()
+            val domainSubject = subjectService.getSubjectByName(subject.username)
+            // TODO move to mapper
+            ResponseEntity.ok().body(
+                jwtService.createJWT(
+                    JWTSubject(
+                        id = domainSubject.id,
+                        username = domainSubject.username,
+                        groups = domainSubject.groups.map { mapToReadDto(it) }.toSet()
+                    )
+                )
+            )
         } else {
             ResponseEntity.status(UNAUTHORIZED).build()
         }

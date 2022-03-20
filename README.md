@@ -6,7 +6,7 @@ I implemented it according to the following task description.
 ## Running the Service
 
 By default the service will start on port 8080.<br>
-The Swagger-UI will be accsible here: http://localhost:8080/api/docs/ui
+The Swagger-UI will be accsible here: http://localhost:8080/docs/ui
 
 
 
