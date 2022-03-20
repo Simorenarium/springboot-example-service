@@ -1,0 +1,19 @@
+# I have this configuration because I like to generate the DDL for the Table
+# by setting hibernate.ddl-auto to update then copy it directly from the db.
+#
+# Otherwise I like to always start from a clean slate with the h2 db which will
+# be reset on each "bootRun"
+spring:
+  datasource:
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/postgres
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL95Dialect

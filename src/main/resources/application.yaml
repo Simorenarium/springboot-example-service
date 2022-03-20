@@ -1,0 +1,26 @@
+spring:
+  # I prefer h2 db for development, uses less resources
+  datasource:
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+    url: ${DB_CONNECTION_URL:jdbc:h2:mem:USERMGMT;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL}
+    driver-class-name: ${DB_DRIVER_CLASSNAME:org.h2.Driver}
+  flyway:
+    enabled: true
+    locations: ${DB_MIGRATION_LOCATIONS:classpath:db/migration}
+    out-of-order: ${DB_MIGRATION_OUT_OF_ORDER:false}
+    validate-on-migrate: ${DB_MIGRATION_VALIDATE_ON_MIGRATE:true}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /api/docs/ui
+  api-docs:
+    path: /api/docs/openapi/v3
+  paths-to-match:
+    - '/**'
+  packages-to-scan:
+    - 'coffee.michel.usermanager.api'
