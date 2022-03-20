@@ -1,3 +1,9 @@
+# Reference Service Project
+
+This Project is a summary of some technologies I use regularly and of course some experimentation.
+I implemented it according to the following task description.
+
+```
 # Domain model
 
 There are two domain objects in the model: the Subject and the User Group.
@@ -37,7 +43,7 @@ in case of success, returns a JWT token in the following format:
     }
   ]
 }
-```
+\```
 
 ### Group management
 
@@ -60,3 +66,4 @@ Running the application:
 ```docker-compose up```
 
 ```./gradlew bRu```
+```
