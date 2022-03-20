@@ -11,12 +11,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
  * and create responses with the corresponding http status codes.
  */
 @RestControllerAdvice
-class ExceptionHandlerAdvice : ResponseEntityExceptionHandler() {
+internal class ExceptionHandlerAdvice : ResponseEntityExceptionHandler() {
 
-    @ExceptionHandler(
-        SubjectNotFoundException::class
-    )
+    @ExceptionHandler(SubjectNotFoundException::class)
     fun handleDetailedException(ex: SubjectNotFoundException, request: WebRequest) =
-        // TODO maybe consider storing the id in the exception instead of trusting the message
+        ResponseEntity.status(404).body(ex.message)
+
+    @ExceptionHandler(UserGroupNotFoundException::class)
+    fun handleDetailedException(ex: UserGroupNotFoundException, request: WebRequest) =
         ResponseEntity.status(404).body(ex.message)
 }

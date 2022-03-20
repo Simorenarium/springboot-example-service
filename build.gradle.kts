@@ -95,6 +95,13 @@ pitest {
     coverageThreshold.set(80)
     testStrengthThreshold.set(80)
     skipFailingTests.set(true)
-    // excludedClasses.set(listOf())
+    excludedClasses.set(
+        listOf(
+            "coffee.michel.usermanager.exception.*",
+            "*Configuration",
+            "*Entity",
+            "*Dto",
+        )
+    )
     // excludedTestClasses.set(listOf())
 }
