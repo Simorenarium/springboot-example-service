@@ -3,6 +3,7 @@ package coffee.michel.usermanager.api.controller
 import coffee.michel.usermanager.SubjectTestFixture.configureSubjectModel
 import coffee.michel.usermanager.UserGroupTestFixture.configureUserGroupModel
 import coffee.michel.usermanager.domain.service.SubjectService
+import coffee.michel.usermanager.exception.SubjectNotFoundException
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -40,7 +41,7 @@ class SubjectControllerTest {
     fun `allUsers - when a list of users is request and the service returns an empty list, an empty result must be returned`() {
         every { subjectService.listAllSubjects() } returns emptyList()
 
-        val result = subjectService.listAllSubjects()
+        val result = sut.allUsers()
 
         assertThat(result).isEmpty()
     }
@@ -73,7 +74,7 @@ class SubjectControllerTest {
     }
 
     @Test
-    fun `delete - when a subject is deleted, a response with status code 201 must be returned`() {
+    fun `delete - when a subject is deleted, a response with status code 204 must be returned`() {
         val testId = 99526
         every { subjectService.delete(testId) } just Runs
 
@@ -81,6 +82,17 @@ class SubjectControllerTest {
 
         verify { subjectService.delete(testId) }
         assertThat(result.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+    }
+
+    @Test
+    fun `delete - when a subject is deleted but it doesn't exist, a response with status code 230 must be returned`() {
+        val testId = 99526
+        every { subjectService.delete(testId) } throws SubjectNotFoundException("")
+
+        val result = sut.delete(testId)
+
+        verify { subjectService.delete(testId) }
+        assertThat(result.statusCodeValue).isEqualTo(230)
     }
 
     @Test

@@ -24,7 +24,7 @@ internal class UserGroupService(
         TODO()
     }
 
-    fun deleteUserGroup(id: Int): UserGroup {
+    fun deleteUserGroup(id: Int) {
         TODO()
     }
 }

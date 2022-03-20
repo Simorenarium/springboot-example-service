@@ -4,13 +4,16 @@ import coffee.michel.usermanager.api.UserGroupReadDto
 import coffee.michel.usermanager.api.utility.mapToDomain
 import coffee.michel.usermanager.api.utility.mapToReadDto
 import coffee.michel.usermanager.domain.service.UserGroupService
+import coffee.michel.usermanager.exception.UserGroupNotFoundException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -62,7 +65,7 @@ internal class UserGroupController(
             description = "The user group could not be found."
         )
     )
-    fun byId(@PathVariable("id") id: Int): UserGroupReadDto {
+    fun userGroupById(@PathVariable("id") id: Int): UserGroupReadDto {
         return mapToReadDto(userGroupService.getUserGroup(id))
     }
 
@@ -73,7 +76,7 @@ internal class UserGroupController(
     )
     @ApiResponses(
         ApiResponse(
-            responseCode = "200",
+            responseCode = "201",
             description = "The user group with the given id was created and returned.",
             content = [Content(schema = Schema(implementation = UserGroupReadDto::class))]
         ),
@@ -82,8 +85,9 @@ internal class UserGroupController(
             description = "The user group already exists."
         )
     )
-    fun create(groupName: String): UserGroupReadDto {
-        return mapToReadDto(userGroupService.createUserGroup(mapToDomain(groupName)))
+    fun create(groupName: String): ResponseEntity<UserGroupReadDto> {
+        val persistedGroup = mapToReadDto(userGroupService.createUserGroup(mapToDomain(groupName)))
+        return ResponseEntity.status(CREATED).body(persistedGroup)
     }
 
     @DeleteMapping("{id}")
@@ -93,7 +97,7 @@ internal class UserGroupController(
     )
     @ApiResponses(
         ApiResponse(
-            responseCode = "201",
+            responseCode = "204",
             description = "The user group was successfully deleted."
         ),
         ApiResponse(
@@ -101,7 +105,12 @@ internal class UserGroupController(
             description = "The user group could not be deleted because it doesn't exist."
         )
     )
-    fun delete(@PathVariable("id") id: Int) {
-        mapToReadDto(userGroupService.deleteUserGroup(id))
+    fun delete(@PathVariable("id") id: Int): ResponseEntity<Any> {
+        return try {
+            userGroupService.deleteUserGroup(id)
+            ResponseEntity.noContent().build()
+        } catch (e: UserGroupNotFoundException) {
+            ResponseEntity.status(230).build()
+        }
     }
 }

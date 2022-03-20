@@ -6,6 +6,7 @@ import coffee.michel.usermanager.api.UserGroupWriteDto
 import coffee.michel.usermanager.api.utility.mapToDomain
 import coffee.michel.usermanager.api.utility.mapToReadDto
 import coffee.michel.usermanager.domain.service.SubjectService
+import coffee.michel.usermanager.exception.SubjectNotFoundException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
@@ -112,10 +113,12 @@ internal class SubjectController(
         )
     )
     fun delete(@PathVariable("id") id: Int): ResponseEntity<Any> {
-        // TODO consider returning the deleted entity (What for???)
-        subjectService.delete(id)
-
-        return ResponseEntity.noContent().build()
+        return try {
+            subjectService.delete(id)
+            ResponseEntity.noContent().build()
+        } catch (e: SubjectNotFoundException) {
+            ResponseEntity.status(230).build()
+        }
     }
 
     // --- non-crud --
