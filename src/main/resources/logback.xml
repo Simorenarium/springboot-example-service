@@ -1,7 +1,7 @@
 <configuration scan="true">
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%-30([%d] [%-5level] [%t]) %c{10}: %m%n</pattern>
+            <pattern>%-30([%d] [%-5level] [%t]) %c: %m%n</pattern>
         </encoder>
     </appender>
 
@@ -9,4 +9,7 @@
         <appender-ref ref="CONSOLE" />
     </root>
     <logger name="coffee.michel" level="DEBUG" />
+    <!-- Useful for debugging the security stuff -->
+    <logger name="org.springframework.web" level="DEBUG" />
+    <logger name="org.springframework.security" level="DEBUG" />
 </configuration>

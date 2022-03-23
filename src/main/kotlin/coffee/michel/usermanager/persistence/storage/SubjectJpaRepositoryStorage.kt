@@ -19,6 +19,11 @@ internal class SubjectJpaRepositoryStorage(
     override fun get(id: Int): Subject =
         mapToDomain(findEntity(id))
 
+    override fun getByName(username: String): Subject =
+        subjectRepository.findByUsername(username)
+            .map { mapToDomain(it) }
+            .orElseThrow { SubjectNotFoundException("Subject with name '$username' not found.") }
+
     override fun persist(subject: Subject): Subject =
         mapToDomain(subjectRepository.save(mapToEntity(subject)))
 

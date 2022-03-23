@@ -8,6 +8,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy.STATELESS
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
+import coffee.michel.usermanager.api.controller.SubjectController.Companion.LOGIN_SUBPATH as SUBJECT_LOGIN
+import coffee.michel.usermanager.api.controller.SubjectController.Companion.PATH as SUBJECT_PATH
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(securedEnabled = true)
@@ -18,10 +20,13 @@ internal class SecurityConfiguration(
 ) : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity) {
-        http.authorizeRequests()
-            .antMatchers("/subject/login", "/docs/**").permitAll()
+        http.csrf().disable()
+            .authorizeRequests()
+            .antMatchers(SUBJECT_PATH, "$SUBJECT_PATH/$SUBJECT_LOGIN").permitAll()
+            .antMatchers("/docs/**").permitAll()
             .anyRequest().authenticated()
-            .and().addFilter(JwtAuthorizationFilter(jwtService, authenticationManager()))
+            .and()
+            .addFilter(JwtAuthorizationFilter(jwtService, authenticationManager()))
             .sessionManagement().sessionCreationPolicy(STATELESS)
     }
 

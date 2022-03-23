@@ -1,5 +1,6 @@
 package coffee.michel.usermanager.api.utility
 
+import mu.KotlinLogging
 import org.slf4j.MDC
 import org.springframework.stereotype.Component
 import javax.servlet.Filter
@@ -16,6 +17,10 @@ import kotlin.runCatching
 @Component
 @WebFilter(filterName = "mdcFilter", urlPatterns = ["/*"])
 class MdcServletFilter : Filter {
+    companion object {
+        private val logger = KotlinLogging.logger { }
+    }
+
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         // TODO take username or id
         // TODO add bean interceptor for trace logs

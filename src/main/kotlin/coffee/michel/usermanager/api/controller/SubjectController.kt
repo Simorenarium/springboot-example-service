@@ -4,9 +4,9 @@ import coffee.michel.usermanager.api.SubjectReadDto
 import coffee.michel.usermanager.api.SubjectWriteDto
 import coffee.michel.usermanager.api.UserGroupWriteDto
 import coffee.michel.usermanager.api.security.JWTService
-import coffee.michel.usermanager.api.security.JWTSubject
 import coffee.michel.usermanager.api.utility.mapToDomain
 import coffee.michel.usermanager.api.utility.mapToReadDto
+import coffee.michel.usermanager.api.utility.mapToSecurityDto
 import coffee.michel.usermanager.domain.service.SubjectService
 import coffee.michel.usermanager.exception.SubjectNotFoundException
 import io.swagger.v3.oas.annotations.Operation
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -32,13 +33,18 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping(
-    value = ["/subject"],
+    value = [SubjectController.PATH],
     produces = [APPLICATION_JSON_VALUE]
 )
 internal class SubjectController(
     private val subjectService: SubjectService,
     private val jwtService: JWTService
 ) {
+
+    companion object {
+        const val PATH = "/subject"
+        const val LOGIN_SUBPATH = "login"
+    }
 
     // TODO verify the security stuff (check if it works)
 
@@ -94,7 +100,7 @@ internal class SubjectController(
             description = "The user or user group could not be found."
         )
     )
-    fun assignGroup(@PathVariable("id") id: Int, group: UserGroupWriteDto): SubjectReadDto {
+    fun assignGroup(@PathVariable("id") id: Int, @RequestBody group: UserGroupWriteDto): SubjectReadDto {
         // TODO consider accepting a set of names or ids instead of write dto
         return mapToReadDto(subjectService.assignGroupToSubject(id, mapToDomain(group)))
     }
@@ -141,13 +147,13 @@ internal class SubjectController(
             description = "The user could not be created because it already exists"
         )
     )
-    fun register(subject: SubjectWriteDto): ResponseEntity<SubjectReadDto> {
+    fun register(@RequestBody subject: SubjectWriteDto): ResponseEntity<SubjectReadDto> {
         val persistedSubject = mapToReadDto(subjectService.register(mapToDomain(subject)))
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(persistedSubject)
     }
 
-    @PostMapping("login")
+    @PostMapping(LOGIN_SUBPATH)
     @Operation(
         summary = "Authenticates a User",
         description = "Receives login data and authenticates them, this endpoint will also return a JWT Token for further use."
@@ -167,24 +173,18 @@ internal class SubjectController(
             description = "The user does not exist."
         )
     )
-    fun login(subject: SubjectWriteDto): ResponseEntity<Any> {
+    fun login(@RequestBody subject: SubjectWriteDto): ResponseEntity<Any> {
         // TODO return JWT token
-        val isLoggedIn = subjectService.login(mapToDomain(subject))
+        val isLoggedIn = subjectService.login(subject.username, subject.password)
+        if (!isLoggedIn)
+            return ResponseEntity.status(UNAUTHORIZED).build()
 
-        return if (isLoggedIn) {
-            val domainSubject = subjectService.getSubjectByName(subject.username)
-            // TODO move to mapper
-            ResponseEntity.ok().body(
-                jwtService.createJWT(
-                    JWTSubject(
-                        id = domainSubject.id,
-                        username = domainSubject.username,
-                        groups = domainSubject.groups.map { mapToReadDto(it) }.toSet()
-                    )
-                )
+        val domainSubject = subjectService.getSubjectByName(subject.username)
+
+        return ResponseEntity.ok().body(
+            jwtService.createJWT(
+                mapToSecurityDto(domainSubject)
             )
-        } else {
-            ResponseEntity.status(UNAUTHORIZED).build()
-        }
+        )
     }
 }

@@ -5,23 +5,36 @@ import coffee.michel.usermanager.domain.UserGroup
 import coffee.michel.usermanager.persistence.SubjectStorage
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import javax.transaction.Transactional
 
 /**
  * Instances of this class serve all functionality regarding the Subject.
+ *
+ * Its purpose is to encapsulate the logic behind specific features in function
+ * which have the name of the implemented feature.
+ * This should make it recognizable where to look first.
  */
 @Service
+@Transactional
 internal class SubjectService(
     private val subjectStorage: SubjectStorage,
     private val passwordEncoder: PasswordEncoder
 ) {
 
+    /**
+     * Performs the registriation of a user.
+     * The given subject will be written to the storage with an encoded version of the password.
+     *
+     * @param The Subject representing the user that is to be registered. Its id will be overwritten.
+     * @return The Subject as it was written to the storage, with a new id.
+     */
     fun register(subject: Subject): Subject =
         subjectStorage.persist(subject.copy(password = passwordEncoder.encode(subject.password)))
 
-    fun login(subject: Subject): Boolean {
-        val persistedSubject = subjectStorage.get(subject.id)
+    fun login(username: String, password: String): Boolean {
+        val persistedSubject = subjectStorage.getByName(username)
 
-        return passwordEncoder.matches(subject.password, persistedSubject.password)
+        return passwordEncoder.matches(password, persistedSubject.password)
     }
 
     fun listAllSubjects(): List<Subject> = subjectStorage.list()
