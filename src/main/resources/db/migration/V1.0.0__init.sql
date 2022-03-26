@@ -1,8 +1,10 @@
 create table if not exists subject
 (
     id       integer not null primary key,
-    password varchar(255) unique,
-    username varchar(255)
+    password varchar(255),
+    username varchar(255),
+
+    unique (username)
 );
 
 create table if not exists user_group

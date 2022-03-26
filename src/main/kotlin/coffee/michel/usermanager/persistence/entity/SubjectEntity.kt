@@ -1,5 +1,6 @@
 package coffee.michel.usermanager.persistence.entity
 
+import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
@@ -12,6 +13,7 @@ internal data class SubjectEntity(
     @Id
     @GeneratedValue
     val id: Int,
+    @Column(unique = true)
     val username: String,
     val password: String,
     @OneToMany
