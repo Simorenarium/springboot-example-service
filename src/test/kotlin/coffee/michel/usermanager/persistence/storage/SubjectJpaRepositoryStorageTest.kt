@@ -1,6 +1,7 @@
 package coffee.michel.usermanager.persistence.storage
 
 import coffee.michel.usermanager.SubjectTestFixture.configureSubjectModel
+import coffee.michel.usermanager.exception.SubjectAlreadyExistsException
 import coffee.michel.usermanager.exception.SubjectNotFoundException
 import coffee.michel.usermanager.persistence.repositories.SubjectRepository
 import io.mockk.Runs
@@ -9,8 +10,10 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.hibernate.exception.ConstraintViolationException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.dao.DataIntegrityViolationException
 import java.util.Optional
 
 class SubjectJpaRepositoryStorageTest {
@@ -63,6 +66,26 @@ class SubjectJpaRepositoryStorageTest {
     }
 
     @Test
+    fun `getByName - when a Subject is requested, it must be returned`() {
+        val testUsername = "this user name is the one of this test"
+        val (_, _, domainSubject, entitySubject) = configureSubjectModel { username = testUsername }
+
+        every { subjectRepository.findByUsername(testUsername) } returns Optional.of(entitySubject)
+
+        val result = sut.getByName(testUsername)
+
+        assertThat(result).isEqualTo(domainSubject)
+    }
+
+    @Test
+    fun `getByName - when a Subject is requested and not found, an exception must be thrown`() {
+        val testUsername = "this is also a uniqe username"
+        every { subjectRepository.findByUsername(testUsername) } returns Optional.empty()
+
+        assertThrows<SubjectNotFoundException>("Subject with username '$testUsername' not found.") { sut.getByName(testUsername) }
+    }
+
+    @Test
     fun `persist - when a Subject is persisted, it must return the persisted entity`() {
         val (_, _, domainSubject, entitySubject) = configureSubjectModel { }
         every { subjectRepository.save(entitySubject) } returns entitySubject
@@ -70,6 +93,16 @@ class SubjectJpaRepositoryStorageTest {
         val result = sut.persist(domainSubject)
 
         assertThat(result).isEqualTo(domainSubject)
+    }
+
+    @Test
+    fun `persist - when a Subject is persisted and a constraint was violated, an exception must be thrown`() {
+        val (_, _, domainSubject, entitySubject) = configureSubjectModel { }
+        every { subjectRepository.save(entitySubject) } throws DataIntegrityViolationException("", ConstraintViolationException("", null, ""))
+
+        assertThrows<SubjectAlreadyExistsException>("Subject with username '${domainSubject.username}' already exists.") {
+            sut.persist(domainSubject)
+        }
     }
 
     @Test

@@ -2,6 +2,7 @@ package coffee.michel.usermanager.api.controller
 
 import coffee.michel.usermanager.SubjectTestFixture.configureSubjectModel
 import coffee.michel.usermanager.UserGroupTestFixture.configureUserGroupModel
+import coffee.michel.usermanager.api.security.JWTService
 import coffee.michel.usermanager.domain.service.SubjectService
 import coffee.michel.usermanager.exception.SubjectNotFoundException
 import io.mockk.Runs
@@ -11,17 +12,15 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.CREATED
-import org.springframework.security.crypto.password.PasswordEncoder
 
 class SubjectControllerTest {
 
     private val subjectService = mockk<SubjectService>()
-    private val passwordEncoder = mockk<PasswordEncoder>()
+    private val jwtService = mockk<JWTService>()
 
-    private val sut = SubjectController(subjectService)
+    private val sut = SubjectController(subjectService, jwtService)
 
     @Test
     fun `allUsers - when a list of users is requested, they must be returned`() {
@@ -112,32 +111,25 @@ class SubjectControllerTest {
     }
 
     @Test
-    fun `login - when the user logs in and the authentication is successful, the http status 201 must be returned`() {
-        val (_, subjectWriteDto, domainSubject) = configureSubjectModel {}
+    fun `login - when the user logs in and the authentication is successful, the http status 200 must be returned along with the jwt`() {
+        val jwtString = "this is a dummy jwt"
+        val (subjectReadDto, subjectWriteDto, domainSubject) = configureSubjectModel {}
 
-        every { subjectService.login(eq(domainSubject.copy(id = -1))) } returns true
+        every { subjectService.login(subjectWriteDto.username, subjectWriteDto.password) } returns true
+        every { subjectService.getSubjectByName(subjectWriteDto.username) } returns domainSubject
+        every { jwtService.createJWT(subjectReadDto) } returns jwtString
 
         val result = sut.login(subjectWriteDto)
 
-        assertThat(result.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
-    }
-
-    @Test
-    fun `login - when the user logs in and the authentication is successful, a valid JWT Token must be returned`() {
-        val (_, subjectWriteDto, domainSubject) = configureSubjectModel {}
-
-        every { subjectService.login(eq(domainSubject.copy(id = -1))) } returns true
-
-        sut.login(subjectWriteDto)
-
-        fail { "JWT is not yet implemented" }
+        assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(result.body).isEqualTo(jwtString)
     }
 
     @Test
     fun `login - when the user logs in and the authentication is fails, the http status 401 must be returned`() {
-        val (_, subjectWriteDto, domainSubject) = configureSubjectModel {}
+        val (_, subjectWriteDto) = configureSubjectModel {}
 
-        every { subjectService.login(any()) } returns false
+        every { subjectService.login(any(), any()) } returns false
 
         val result = sut.login(subjectWriteDto)
 

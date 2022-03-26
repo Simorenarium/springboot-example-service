@@ -29,7 +29,7 @@ internal interface UserGroupStorage {
      *
      * @return a modified UserGroup with a new ID.
      */
-    fun persist(subject: UserGroup): UserGroup
+    fun persist(userGroup: UserGroup): UserGroup
 
     /**
      * Deletes the UserGroup with the given ID from the Storage.
