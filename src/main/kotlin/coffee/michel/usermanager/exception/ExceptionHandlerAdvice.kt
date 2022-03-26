@@ -1,6 +1,7 @@
 package coffee.michel.usermanager.exception
 
 import mu.KotlinLogging
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -36,4 +37,8 @@ internal class ExceptionHandlerAdvice : ResponseEntityExceptionHandler() {
     @ExceptionHandler(UserGroupNotFoundException::class)
     fun handleDetailedException(ex: UserGroupNotFoundException, request: WebRequest) =
         ResponseEntity.status(404).body(ex.message)
+
+    @ExceptionHandler(SubjectAlreadyExistsException::class)
+    fun handleDetailedException(ex: SubjectAlreadyExistsException, request: WebRequest) =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(ex.message)
 }
