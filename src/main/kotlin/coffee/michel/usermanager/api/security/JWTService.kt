@@ -2,15 +2,21 @@ package coffee.michel.usermanager.api.security
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
-import com.nimbusds.jose.JWSObject
-import com.nimbusds.jose.Payload
+import com.nimbusds.jose.JWSSigner
+import com.nimbusds.jose.JWSVerifier
 import com.nimbusds.jose.crypto.MACSigner
 import com.nimbusds.jose.crypto.MACVerifier
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.SignedJWT
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import java.security.SecureRandom
+import java.time.Duration
+import java.time.Instant
+import java.util.Date
 import javax.naming.AuthenticationException
 
 /**
@@ -26,29 +32,58 @@ import javax.naming.AuthenticationException
 @Service
 internal class JWTService {
 
-    private final val secret = ByteArray(32).apply { SecureRandom().nextBytes(this) }
-    private final val signer = MACSigner(secret)
-    private final val verifier = MACVerifier(secret)
+    companion object {
+        private val logger = KotlinLogging.logger { }
+    }
+
+    private final val signer: JWSSigner
+    private final val verifier: JWSVerifier
+
+    init {
+        val rand = SecureRandom()
+        val secret = ByteArray(32)
+        rand.nextBytes(secret)
+
+        logger.debug { "Generated secret for MAC Signing and Verification: ${String(secret)}" }
+
+        signer = MACSigner(secret)
+        verifier = MACVerifier(secret)
+    }
 
     fun createJWT(sub: JWTSubject): String =
-        createAndSignJWT(sub).serialize()
+        createAndSignJWT {
+            subject("${sub.sub}")
+            claim("username", sub.username)
+            claim("groups", Json.encodeToString(sub.groups))
 
-    fun parseJWT(jwt: String): JWTSubject =
-        Json.decodeFromString(parseAndVerifyJwt(jwt).payload.toString())
+            // TODO Replace with Provider
+            issueTime(Date.from(Instant.now()))
+            expirationTime(Date.from(Instant.now().plus(Duration.ofHours(4))))
+        }
+            .serialize()
 
-    private fun createAndSignJWT(entity: JWTSubject) =
-        JWSObject(
+    fun parseJWT(jwt: String): JWTSubject {
+        val parsed: SignedJWT = parseAndVerifyJwt(jwt)
+        return JWTSubject(
+            sub = parsed.jwtClaimsSet.subject.toInt(),
+            username = parsed.jwtClaimsSet.getStringClaim("username"),
+            groups = Json.decodeFromString(parsed.jwtClaimsSet.getStringClaim("groups"))
+        )
+    }
+
+    private fun createAndSignJWT(block: JWTClaimsSet.Builder.() -> Unit) =
+        SignedJWT(
             createJWSHeader(),
-            mapToPayload(entity)
+            createClaimSet(block)
         ).apply { sign(signer) }
 
-    private fun mapToPayload(entity: JWTSubject) =
-        Payload(Json.encodeToString(entity))
+    private fun createClaimSet(block: JWTClaimsSet.Builder.() -> Unit): JWTClaimsSet =
+        JWTClaimsSet.Builder().apply(block).build()
 
     private fun createJWSHeader() = JWSHeader.Builder(JWSAlgorithm.HS256).build()
 
     private fun parseAndVerifyJwt(jwt: String) =
-        JWSObject.parse(jwt)
+        SignedJWT.parse(jwt)
             .takeIf { it.verify(verifier) }
             // TODO replace with own exception
             ?: throw AuthenticationException("")

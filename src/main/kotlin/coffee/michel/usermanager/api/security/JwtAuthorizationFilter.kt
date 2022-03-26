@@ -46,7 +46,6 @@ internal class JwtAuthorizationFilter(
         // TODO check for "Bearer" keyword and use that as split point
         request.getHeaders(AUTHORIZATION).toList()
             .find { it.startsWith("Bearer") }
-            ?.split("\\s")
-            ?.takeIf { it.isNotEmpty() }
-            ?.last()
+            ?.substring(6)
+    // TODO base64 decode?
 }
