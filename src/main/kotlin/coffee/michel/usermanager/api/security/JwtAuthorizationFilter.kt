@@ -12,8 +12,7 @@ import javax.servlet.http.HttpServletResponse
 
 /**
  * This Component supplies the HTTP Server with an Authentication-Filter which
- * TODO check the purpose once the JWT topic clears up
- * [enables JWT Authentication[ and supplies the Context with the logged-in User]]
+ * enables JWT Authentication via a "Bearer" Token.
  *
  * @see <a href="https://javatodev.com/spring-boot-jwt-authentication/">Springboot JWT Example</a>
  */

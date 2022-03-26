@@ -1,10 +1,12 @@
 package coffee.michel.usermanager.exception
 
+import mu.KotlinLogging
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
+import java.lang.Exception
 
 /**
  * This advice is will handle all known exceptions
@@ -12,6 +14,20 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
  */
 @RestControllerAdvice
 internal class ExceptionHandlerAdvice : ResponseEntityExceptionHandler() {
+
+    companion object {
+        private val log = KotlinLogging.logger { }
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun handleAmbiguousException(
+        ex: Exception,
+        request: WebRequest
+    ): ResponseEntity<Any> {
+        log.error(ex) { "An unhandled Exception was thrown:" }
+
+        return ResponseEntity.status(500).body(ex.message)
+    }
 
     @ExceptionHandler(SubjectNotFoundException::class)
     fun handleDetailedException(ex: SubjectNotFoundException, request: WebRequest) =

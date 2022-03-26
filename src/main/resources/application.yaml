@@ -18,6 +18,10 @@ server:
   error:
     whitelabel:
       enabled: false
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
 springdoc:
   swagger-ui:
     enabled: true
