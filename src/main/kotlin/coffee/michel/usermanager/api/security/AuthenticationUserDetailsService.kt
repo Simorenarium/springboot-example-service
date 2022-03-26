@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
 
 @Service
+// TODO actually make use of this?
+// there is no requirement for authorization beyond anonymous or logged in
 internal class AuthenticationUserDetailsService(
     private val subjectService: SubjectService
 ) : UserDetailsService {

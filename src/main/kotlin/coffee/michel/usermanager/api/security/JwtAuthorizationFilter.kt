@@ -29,6 +29,8 @@ internal class JwtAuthorizationFilter(
         val rawJWT = getRawJWT(request)
         if (rawJWT != null)
             handleJWT(rawJWT)
+        else
+            handleAnonymousUser()
 
         filterChain.doFilter(request, response)
     }
@@ -38,6 +40,13 @@ internal class JwtAuthorizationFilter(
 
         SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(
             jwt.username, null, jwt.groups.map { SimpleGrantedAuthority(it.name) }
+        )
+    }
+
+    private fun handleAnonymousUser() {
+        // TODO If the principal is an object, consider using the subject
+        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(
+            "anonymous", null, emptyList()
         )
     }
 
