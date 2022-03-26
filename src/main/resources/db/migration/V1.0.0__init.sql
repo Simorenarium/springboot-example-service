@@ -10,7 +10,9 @@ create table if not exists subject
 create table if not exists user_group
 (
     id   integer not null primary key,
-    name varchar(255) unique
+    name varchar(255),
+
+    unique (name)
 );
 
 create table if not exists subject_groups
