@@ -6,7 +6,6 @@ import coffee.michel.usermanager.api.UserGroupWriteDto
 import coffee.michel.usermanager.api.security.JWTService
 import coffee.michel.usermanager.api.utility.mapToDomain
 import coffee.michel.usermanager.api.utility.mapToReadDto
-import coffee.michel.usermanager.api.utility.mapToSecurityDto
 import coffee.michel.usermanager.domain.service.SubjectService
 import coffee.michel.usermanager.exception.SubjectNotFoundException
 import io.swagger.v3.oas.annotations.Operation
@@ -174,7 +173,6 @@ internal class SubjectController(
         )
     )
     fun login(@RequestBody subject: SubjectWriteDto): ResponseEntity<Any> {
-        // TODO return JWT token
         val isLoggedIn = subjectService.login(subject.username, subject.password)
         if (!isLoggedIn)
             return ResponseEntity.status(UNAUTHORIZED).build()
@@ -183,7 +181,7 @@ internal class SubjectController(
 
         return ResponseEntity.ok().body(
             jwtService.createJWT(
-                mapToSecurityDto(domainSubject)
+                mapToReadDto(domainSubject)
             )
         )
     }

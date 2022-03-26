@@ -1,5 +1,6 @@
 package coffee.michel.usermanager.api.security
 
+import coffee.michel.usermanager.api.SubjectReadDto
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.JWSSigner
@@ -50,7 +51,7 @@ internal class JWTService {
         verifier = MACVerifier(secret)
     }
 
-    fun createJWT(sub: JWTSubject): String =
+    fun createJWT(sub: SubjectReadDto): String =
         createAndSignJWT {
             subject("${sub.sub}")
             claim("username", sub.username)
@@ -62,9 +63,9 @@ internal class JWTService {
         }
             .serialize()
 
-    fun parseJWT(jwt: String): JWTSubject {
+    fun parseJWT(jwt: String): SubjectReadDto {
         val parsed: SignedJWT = parseAndVerifyJwt(jwt)
-        return JWTSubject(
+        return SubjectReadDto(
             sub = parsed.jwtClaimsSet.subject.toInt(),
             username = parsed.jwtClaimsSet.getStringClaim("username"),
             groups = Json.decodeFromString(parsed.jwtClaimsSet.getStringClaim("groups"))
